@@ -14,22 +14,23 @@ def getStory():
 def getObj():
     return obj
 
-def setSubmission(sub):
-    check = ''
-    if currentStory == 'tutorial1':
-        check = 'a'
-    elif currentStory == 'tutorial2':
-        check = 'c'
-    else:
-        print('Error: setSubmission Error')
-        return
-    
+def setSubmission(sub, cost=0):
     global submission
-    submission = (sub == check)
-    
+    submission = checkSubmission(sub)
+    if submission:
+        gameLib.display('Correct submission was made')
+    else:
+        # submission failed
+        gameLib.display('Wrong submission was made')
+        gameLib.resetCost()
+
 def chat(chatter, message):
     print(chatter, end=': ')
     print(message)
+
+def waitTilInput():
+    print('[Press Enter to continue]')
+    input()
 
 def prologue():
     currentStory = 'prologue'
@@ -60,7 +61,8 @@ def prologue():
     chat('GREEN', 'Do you think your intern job is a joke?')
     gameLib.sleep(4)
     chat('GREEN', 'This is why we need more professional person. Why did we even hire YOU?')
-    gameLib.sleep(4)
+    # gameLib.sleep(4)
+    waitTilInput()
     chat('GREEN', 'Anyways, we are busy. I need you to get into the FLAMEL machine')
     gameLib.sleep(2)
     chat('GREEN', 'Do you have the access to it?')
@@ -83,21 +85,22 @@ def prologue():
     gameLib.sleep(4)
     chat('GREEN', 'FLAMEL is remote machine that controls a chemistry lab')
     gameLib.sleep(4)
-    chat('GREEN', 'Remote machine can prevent dangerous situation caused by reactions')
-    gameLib.sleep(4)
-    chat('GREEN', 'Remember, the access code is to the machine is \"won\"')
+    chat('GREEN', 'We use this remote machine to prevent dangerous situation that might be caused by reactions')
+    # gameLib.sleep(6)
+    waitTilInput()
+    chat('GREEN', 'BTW, the access code is to the machine is \"won\"')
     gameLib.sleep(2)
     chat('GREEN', 'I\'ll show you how to use FLAMEL once you get in')
     gameLib.sleep(4)
     chat('GREEN', 'Enter code \"obj\" to the console when you\'re in')
     gameLib.sleep(4)
     print('[GREEN has left the chat]')
-    gameLib.sleep(4)
-    print('[Connecting to FLAMEL]')
-    gameLib.sleep(6)
+    waitTilInput()
     return tutorial1
 
 def tutorial1():
+    print('[Connecting to FLAMEL]')
+    gameLib.sleep(6)
     gameLib.clearScreen()
     global currentStory
     currentStory = 'tutorial1'
@@ -118,6 +121,99 @@ def tutorial1():
     obj = obj + 'sub 1\n\n'
     obj = obj + 'Which means: submit content inside container 1'
     obj = obj + 'Please hand me this asap.\n-Green'
+    obj = obj + '\nP.S. Use command \'quit\' to exit FLAMEL'
+    
+    global submission
+    submission = False
+    
+    while not submission:
+        quit = gameLib.requestConsole()
+        if quit:
+            return False
+    
+    return prologue2
+
+def prologue2():
+    print('[Disconnecting from FLAMEL]\n')
+    gameLib.sleep(6)
+    gameLib.clearScreen()
+    print('[WHITE has logged into the chat]\n')
+    gameLib.sleep(6)
+    chat('GREEN', 'Well done')
+    gameLib.sleep(2)
+    chat('GREEN', 'Thanks')
+    gameLib.sleep(4)
+    chat('GREEN', 'For now, you\'ll help me to conduct research, simply by giving me materials from stock')
+    # gameLib.sleep(4)
+    waitTilInput()
+    chat('WHITE', 'Alright')
+    gameLib.sleep(4)
+    chat('GREEN', 'I\'ll be asking you more stuff to do soon')
+    gameLib.sleep(4)
+    chat('GREEN', 'I\'ll communicate to you by mail within FLAMEL. Use \'obj\' to check my mail')
+    gameLib.sleep(4)
+    print('[GREEN has left the chat]')
+    waitTilInput()
+    return tutorial2
+
+def tutorial2():
+    print('[Connecting to FLAMEL]')
+    gameLib.sleep(6)
+    gameLib.clearScreen()
+    global currentStory
+    currentStory = 'tutorial2'
+    global checkSubmission
+    global obj
+    
+    def checkSubmission(arg):
+        global obj
+        if arg == 'a':
+            return True
+        if arg == 'b':
+            print('[New mail has arrived]')
+            obj = 'Huh, looks like FLAMEL machine is not working properly.\n'
+            obj = obj + 'I think the substance is mislabeled.\n'
+            obj = obj + 'Try command \"chk 1\" to check what substance is in container 1.\n\n'
+            obj = obj + 'If it is substance B, then well, I don\'t need it so throw it away by using command \"del 1\".\n\n'
+            obj = obj + 'After that, try to check if supply for substance B is actually substance A.\n'
+            obj = obj + 'P.S. I still need that substance A'
+        return False
+    gameLib.tutorial2MoveSet(True)
+    
+    obj = 'Welcome back.\n'
+    obj = obj + 'I still need substance A. Please send substance A to me.\n'
+    
+    global submission
+    submission = False
+    
+    while not submission:
+        quit = gameLib.requestConsole()
+        if quit:
+            return False
+    
+    gameLib.tutorial2MoveSet()
+    
+    return tutorial3
+    
+
+def tutorial3():
+    global currentStory
+    currentStory = 'tutorial3'
+    global checkSubmission
+    global obj
+    
+    clearScreen()
+    print('[New mail has arrived]')
+    
+    def checkSubmission(arg):
+        return arg == 'c'
+    obj = 'Great. I just contacted the engineers on the field, and it is now fixed.\n'
+    obj = obj + 'I\'m not busy at the moment so I can teach you about mixing substances.\n'
+    obj = obj + 'When you mov a substance to container that already holds another substance, '
+    obj = obj + 'they will \"mix\" and cause reaction, leaving a new substance.\n'
+    obj = obj + 'I want you to practice this. Instead of just reaching to substance C supply, '
+    obj = obj + 'try to create it by mixing substance A and B.\n'
+    obj = obj + 'P.S. swapping the substances (mixing A and B vs mixing B and A) will NOT affect the result.\n'
     
     global submission
     submission = False
@@ -128,6 +224,40 @@ def tutorial1():
             return False
     
     return False
+    
+
+
+
+
+
+def blankEpisode():
+    global currentStory
+    currentStory = ''
+    global checkSubmission
+    global obj
+    
+    clearScreen()
+    print('[New mail has arrived]')
+    
+    def checkSubmission(arg):
+        return arg == 'c'
+    obj = '\n'
+    obj = obj + '\n'
+    obj = obj + '\n'
+    obj = obj + '\n'
+    obj = obj + '\n'
+    obj = obj + '\n'
+    
+    global submission
+    submission = False
+    
+    while not submission:
+        quit = gameLib.requestConsole()
+        if quit:
+            return False
+    
+    return False
+    
 
 # prologue:
 # 

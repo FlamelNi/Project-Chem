@@ -20,7 +20,7 @@ class Substance:
 
 ANSWER_CHOICE_CHAR = 30;
 prevMessage = ''
-
+cost = 0
 
 MIX_TABLE = [
     ['a', 'c', 'e', 'e', 'e'],
@@ -40,6 +40,9 @@ fus_table  = [
 
 cst_table = ['', '', '', '', '']
 
+def resetCost():
+    cost = 0
+
 def displayTable(table=MIX_TABLE):
     a = 0
     print('  a b c d e f')
@@ -52,6 +55,19 @@ def displayTable(table=MIX_TABLE):
                 print(' ', end='')
         print('')
         a = a + 1
+
+def setUpRandomReactions():
+    global fus_table
+    global cst_table
+    fus_table = randMixTable()
+    table = ['a', 'b', 'c', 'd', 'e']
+    i = 0
+    while i < len(cst_table):
+        index  = random.randint(0,len(table)-1)
+        cst_table[i] = table[index]
+        del table[index]
+        i = i + 1
+    
 
 def randMixTable(regMix=False):
     mixTable = [
@@ -193,7 +209,7 @@ def sub(arg1, arg2=''):
     if getArgType(arg1) != 'CONTAINER':
         raise CommandError('arg1 has to be in CONTAINER')
     # display('You have submitted: ')
-    setSubmission(getSubstance(arg1))
+    setSubmission(getSubstance(arg1).sub)
 
 def mov(arg1, arg2):
     checkArgs(arg1, arg2, 2)
@@ -202,6 +218,26 @@ def mov(arg1, arg2):
     if getSubstance(arg1).sub == '' or getSubstance(arg1) == 'INVALID':
         raise CommandError('arg1 is INVALID')
     takeAction('mov')
+    m = getSubstance(arg1)
+    if getSubstance(arg2).sub != '':
+        m.sub = mix(getSubstance(arg1).sub, getSubstance(arg2).sub)
+        m.display = m.sub
+        if getSubstance(arg1).display == 'X' or getSubstance(arg2).display == 'X':
+            m.display = 'X'
+    setSubstance(arg2, m)
+    setSubstance(arg1, Substance(''))
+    
+def movTutorial(arg1, arg2):
+    checkArgs(arg1, arg2, 2)
+    if getArgType(arg2) != 'CONTAINER':
+        raise CommandError('arg2 has to be in CONTAINER')
+    if getSubstance(arg1).sub == '' or getSubstance(arg1) == 'INVALID':
+        raise CommandError('arg1 is INVALID')
+    takeAction('mov')
+    if arg1 == 'a' and getArgType(arg1) == 'SUPPLY':
+        arg1 = 'b'
+    elif arg1 == 'b' and getArgType(arg1) == 'SUPPLY':
+        arg1 = 'a'
     m = getSubstance(arg1)
     if getSubstance(arg2).sub != '':
         m.sub = mix(getSubstance(arg1).sub, getSubstance(arg2).sub)
@@ -241,7 +277,6 @@ def fus(arg1='', arg2=''):
 # sub - submit
 
 
-
 USEABLE_COMMANDS = {
     #no arg
     'clear': clearScreen,
@@ -258,6 +293,13 @@ USEABLE_COMMANDS = {
     # two args
     'mov': mov
 }
+
+def tutorial2MoveSet(a=False):
+    global USEABLE_COMMANDS
+    if a:
+        USEABLE_COMMANDS['mov'] = movTutorial
+    else:
+        USEABLE_COMMANDS['mov'] = mov
 
 from userCode import getUserCommand
 

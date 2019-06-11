@@ -1,9 +1,13 @@
-
-from gameLib import help
-from gameLib import chk
-from gameLib import crg
-from gameLib import cst
+from gameLib import clearScreen
 from gameLib import fus
+from gameLib import help
+from gameLib import obj
+from gameLib import chk
+from gameLib import cst
+from gameLib import rev
+from gameLib import sub
+from gameLib import mov
+
 from gameLib import readPrevMessage
 from gameLib import display
 
@@ -23,11 +27,6 @@ from gameLib import display
 #
 # chk(arg1, arg2='')
 #     prints the actual substance in arg1
-#
-# crg
-#     *This is function for command 'chr'
-#      The reason for this being named as 'crg' is because
-#      'chr' is python's keyword
 #
 # cst
 #

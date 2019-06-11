@@ -18,7 +18,7 @@ Certain challenges are randomly produced in large number, which is almost imposs
 ## Access code
 This game does not create any save file. Instead, it will give passcode that allows players to start from certain save points. Please write it down somewhere to load from check point.
 
-The access code to begin the game is:
-zerozerozerozero
+The access code to begin the game is:<br/>
+**zerozerozerozero**
 
 

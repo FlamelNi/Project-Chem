@@ -2,6 +2,8 @@
 import gameLib
 import story
 
+gameLib.setUpRandomReactions()
+
 # PLEASE DO NOT READ
 
 # Code below contains save code
@@ -10,12 +12,12 @@ import story
 
 
 # debugging code!!
-story.tutorial1()
+story.tutorial2()
 print('FULL STOP')
 input()
 # debugging code!!
 
-def waitLoad(waitTime=0.7):
+def waitLoad(waitTime=0.5):
     gameLib.sleep(waitTime)
     print('.')
     gameLib.sleep(waitTime)
@@ -29,12 +31,12 @@ gameLib.clearScreen()
 print('Loading...')
 waitLoad()
 
-gameLib.sleep(0.7)
+gameLib.sleep(0.5)
 print('Checking secure connection...')
 waitLoad()
-gameLib.sleep(0.7)
+gameLib.sleep(0.5)
 print('[Breach tool ready]\n')
-gameLib.sleep(0.7)
+gameLib.sleep(0.5)
 
 print('[Please enter entry point code]')
 print('Enter:', end=' ')
