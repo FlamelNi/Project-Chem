@@ -113,15 +113,6 @@ def askUser(answerChoice):
     print('\n')
     return userInput
 
-# def checkArgs(arg1, arg2, i):
-#     if arg1 == '':
-#         display('Error: arg1 is missing')
-#         return False
-#     if i >= 2 and arg2 == '':
-#         display('Error: arg2 is missing')
-#         return False
-#     return True
-
 def checkArgs(arg1, arg2, i):
     if arg1 == '':
         raise CommandError('arg1 is missing')
