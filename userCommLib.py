@@ -27,10 +27,25 @@ from gameLib import display
 #
 # chk(arg1, arg2='')
 #     prints the actual substance in arg1
-#
+# 
+# mov(from, to)
+#     moves the substance from "from" to "to
+#     avaliable "from" and  "to" are...
+#         supplies:
+#             a, b, c, d, e,
+#         containers:
+#             1, 2, 3, 4, 5
+#     possible combination is:
+#         supply to container
+#         container to container
+#     if destination container already contains a substance,
+#     then two substances will MIX
+#     example: a + b = c
+# 
+# 
 # cst
-#
+# 
 # fus
-#
+# 
 
 

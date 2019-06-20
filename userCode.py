@@ -15,6 +15,8 @@ import userCommLib
 def sayHelloTo(name, arg2=''):
     userCommLib.display('Hello, ' + str(name))
 
+
+# Please take a look at userCommLib to access usable functions
 # +++++++ CODE HERE +++++++
 
 
