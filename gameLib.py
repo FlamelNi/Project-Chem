@@ -67,19 +67,27 @@ fus_table  = [
 cst_table = ['', '', '', '', '']
 
 def resetCost():
+    global cost
     cost = 0
 
 def resetProcessTime():
+    global isProcessing
+    global totalProcessTime
     isProcessing = False
     totalProcessTime = 0
     
 
 def startProcess():
+    global totalProcessTime
+    global isProcessing
+    global lastProcessStartedAt
+    
     if totalProcessTime == 0:
-        isProcessing = False
+        resetProcessTime()
         return
     isProcessing = True
     lastProcessStartedAt = time()
+    
 
 def displayTable(table=MIX_TABLE):
     a = 0
@@ -197,13 +205,18 @@ def validArgType(arg):
     return getArgType(arg) != 'INVALID'
 
 def setRestriction(action, restriction=True):
+    global processRestriction
     processRestriction[action] = restriction
     
-def setActionTime(action, processTime=0):
-    processTime[action] = processTime
+def setActionTime(action, newProcessTime=0):
+    global processTime
+    processTime[action] = newProcessTime
 
 def takeAction(action):
     # TODO: takeAction
+    global processRestriction
+    global totalProcessTime
+    global processTime
     if processRestriction[action]:
         resetProcessTime()
         raise CommandError(action + ' is not allowed')
@@ -295,11 +308,11 @@ def movTutorial(arg1, arg2):
     setSubstance(arg2, m)
     setSubstance(arg1, Substance(''))
     
-def cst(arg1, arg2=''):
+def cst(arg1, arg2=''):#casting subtance then move to 5
     checkArgs(arg1, arg2, 1)
-    a = arg1.sub
+    a = getSubstance(arg1).sub
     a = ord(a) - ord('a')
-    a = cst_table(a)
+    a = cst_table[a]
     takeAction('cst')
     takeAction('mov')
     if getSubstance('5').sub != '':
@@ -314,25 +327,17 @@ def fus(arg1='', arg2=''):
     takeAction('fus')
     takeAction('mov')
     fusOutcome = mix(getSubstance('1').sub, getSubstance('2').sub, fus_table)
-    finalOutcome = Substance(mix(fusOutcome, getSubstance('3').sub))
+    finalOutcome = Substance(fusOutcome)
+    if getSubstance('3').sub != '':
+        finalOutcome = Substance(mix(fusOutcome, getSubstance('3').sub))
     if getSubstance('1').display == 'X' or getSubstance('2').display == 'X':
         finalOutcome.display = 'X'
     setSubstance('3', finalOutcome)
     setSubstance('1', Substance(''))
     setSubstance('2', Substance(''))
     
-    
-
-def checkTime(arg1='', arg2=''):
-    display('totalProcessTime:'+totalProcessTime)
-    display('isProcessing:'+isProcessing)
-    display('processTime:'+processTime)
-    
-    
 
 USEABLE_COMMANDS = {
-    # TODO: debug
-    'checkTime': checkTime,
     #no arg
     'clear': clearScreen,
     'cls': clearScreen,
