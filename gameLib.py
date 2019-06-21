@@ -154,6 +154,15 @@ def clearScreen(arg1='', arg2=''):
     elif platform.system() == 'Linux':
         os.system('clear')
 
+def flush():
+    try:
+        import msvcrt
+        while msvcrt.kbhit():
+            msvcrt.getch()
+    except ImportError:
+        import sys, termios
+        termios.tcflush(sys.stdin, termios.TCIOFLUSH)
+    
 def askUser(answerChoice):
     i = 1
     for c in answerChoice:
@@ -247,7 +256,11 @@ def mix(a, b, table=MIX_TABLE):
 def exitGame(arg1='', arg2=''):
     raise CommandError('QUIT')
 def help(arg1='', arg2=''):
-    printCommands()
+    print('COMMANDS:')
+    for c in USEABLE_COMMANDS:
+        print(c)
+    for c in getUserCommand():
+        print(c)
 def obj(arg1='', arg2=''):
     display(getObj())
 def chk(arg1, arg2=''):
@@ -363,12 +376,6 @@ def tutorial2MoveSet(a=False):
 
 from userCode import getUserCommand
 
-def printCommands():
-    print('COMMANDS:')
-    for c in USEABLE_COMMANDS:
-        print(c)
-    for c in getUserCommand():
-        print(c)
 def requestConsole():
     print('Enter:', end=' ')
     userInput = input()
@@ -403,8 +410,42 @@ def requestConsole():
             print('')
     return False
 
+
+exitProgram = False
+
+def consoleApplication():
+    clearScreen()
+    while True:
+        quit = requestConsole()
+        if quit:
+            break
+    
+
+def mailApplication():
+    print('mail')
+    if False:
+        print('')
+    
+
+def doQuit():
+    global exitProgram
+    print('[Exiting the program...]')
+    sleep(2)
+    exitProgram = True
+
+menuList = {
+    'console': consoleApplication,
+    'mail': mailApplication,
+    'quit': doQuit
+}
+
+appFunct = False
+
 def cursorMove(key):
     global cursor
+    global menuList
+    global appFunct
+    appFunct = False
     if key == Key.up:
         cursor = cursor - 1
         return False
@@ -412,23 +453,20 @@ def cursorMove(key):
         cursor = cursor + 1
         return False
     if key == Key.enter:
-        # if 0 then call console input
-        # 1 then call mail
-        # 2 then quit
-        # 
-        if False:
-            print('')
-        # TODO: transition from menu to sub-program
+        i = 0
+        for app in menuList:
+            if cursor == i:
+                appFunct = menuList[app]
+                break
+            i = i + 1
+        return False
 
 def menu():
     global cursor
-    menuList = [
-        'console',
-        'mail',
-        'quit'
-    ]
-    
-    while 1:
+    global menuList
+    global exitProgram
+    global appFunct
+    while not exitProgram:
         clearScreen()
         i = 0
         for a in menuList:
@@ -441,7 +479,12 @@ def menu():
         
         with Listener(on_press=cursorMove) as listener:
             listener.join()
+        flush()
+        if appFunct != False:
+            appFunct()
         cursor = cursor%len(menuList)
+    
+    
     
 
 
