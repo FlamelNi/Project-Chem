@@ -12,9 +12,11 @@ gameLib.setUpRandomReactions()
 
 
 # debugging code!!
-story.tutorial2()
-print('FULL STOP')
-input()
+while 1:
+    gameLib.requestConsole()
+# story.tutorial2()
+# print('FULL STOP')
+# input()
 # debugging code!!
 
 def waitLoad(waitTime=0.5):

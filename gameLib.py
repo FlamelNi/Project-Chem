@@ -3,9 +3,12 @@ import os
 import platform
 import random
 from time import sleep
+from time import time
 from story import getStory
 from story import setSubmission
 from story import getObj
+from pynput.keyboard import Key, Listener
+
 
 class CommandError(Exception):
     def __init__(self, message):
@@ -21,6 +24,29 @@ class Substance:
 ANSWER_CHOICE_CHAR = 30;
 prevMessage = ''
 cost = 0
+cursor = 0
+
+totalProcessTime = 0
+lastProcessStartedAt = 0
+isProcessing = False
+
+processTime = {
+    'mov': 0,
+    'mix': 0,
+    'fus': 0,
+    'chk': 0,
+    'cst': 0,
+    'del': 0
+}
+
+processRestriction = {
+    'mov': False,
+    'mix': False,
+    'fus': False,
+    'chk': False,
+    'cst': False,
+    'del': False
+}
 
 MIX_TABLE = [
     ['a', 'c', 'e', 'e', 'e'],
@@ -42,6 +68,18 @@ cst_table = ['', '', '', '', '']
 
 def resetCost():
     cost = 0
+
+def resetProcessTime():
+    isProcessing = False
+    totalProcessTime = 0
+    
+
+def startProcess():
+    if totalProcessTime == 0:
+        isProcessing = False
+        return
+    isProcessing = True
+    lastProcessStartedAt = time()
 
 def displayTable(table=MIX_TABLE):
     a = 0
@@ -157,10 +195,20 @@ def getArgType(arg):
     return 'INVALID'
 def validArgType(arg):
     return getArgType(arg) != 'INVALID'
+
+def setRestriction(action, restriction=True):
+    processRestriction[action] = restriction
+    
+def setActionTime(action, processTime=0):
+    processTime[action] = processTime
+
 def takeAction(action):
-    processTime = {
-        'mov': 0
-    }
+    # TODO: takeAction
+    if processRestriction[action]:
+        resetProcessTime()
+        raise CommandError(action + ' is not allowed')
+    totalProcessTime = totalProcessTime + processTime[action]
+    
 def getSubstance(pos):
     if getArgType(pos) == 'CONTAINER':
         return container[pos]
@@ -272,12 +320,19 @@ def fus(arg1='', arg2=''):
     setSubstance('3', finalOutcome)
     setSubstance('1', Substance(''))
     setSubstance('2', Substance(''))
+    
+    
 
-
-# sub - submit
-
+def checkTime(arg1='', arg2=''):
+    display('totalProcessTime:'+totalProcessTime)
+    display('isProcessing:'+isProcessing)
+    display('processTime:'+processTime)
+    
+    
 
 USEABLE_COMMANDS = {
+    # TODO: debug
+    'checkTime': checkTime,
     #no arg
     'clear': clearScreen,
     'cls': clearScreen,
@@ -332,7 +387,9 @@ def requestConsole():
         print('Error: unknown command')
     else:
         try:
+            resetProcessTime()
             commFunct(arg1, arg2)
+            startProcess()
         except CommandError as e:
             if e.message == 'QUIT':
                 return True
@@ -340,5 +397,46 @@ def requestConsole():
         if commFunct != clearScreen:
             print('')
     return False
+
+def cursorMove(key):
+    global cursor
+    if key == Key.up:
+        cursor = cursor - 1
+        return False
+    if key == Key.down:
+        cursor = cursor + 1
+        return False
+    if key == Key.enter:
+        # if 0 then call console input
+        # 1 then call mail
+        # 2 then quit
+        # 
+        if False:
+            print('')
+        # TODO: transition from menu to sub-program
+
+def menu():
+    global cursor
+    menuList = [
+        'console',
+        'mail',
+        'quit'
+    ]
+    
+    while 1:
+        clearScreen()
+        i = 0
+        for a in menuList:
+            if cursor == i:
+                print('->', end='')
+            else:
+                print('  ', end='')
+            print(a)
+            i = i + 1
+        
+        with Listener(on_press=cursorMove) as listener:
+            listener.join()
+        cursor = cursor%len(menuList)
+    
 
 
