@@ -95,10 +95,10 @@ def randMixTable(regMix=False):
 def readPrevMessage():
     return prevMessage
 
-def display(m, doPrint=True):
+def display(m, doPrint=True, end=''):
     prevMessage = m
     if doPrint:
-        print(m)
+        print(m, end=end)
 
 def clearScreen(arg1='', arg2=''):
     if platform.system() == 'Windows':

@@ -14,20 +14,24 @@ from gameLib import display
 # readPrevMessage()
 #     get previous message printed on console
 #
-# display(arg, doPrint=True)
+# display(arg, doPrint=True, end='')
 #     display arg to console.
 #     * display must be used so that readPrevMessage can work.
 #       if regular print function is used,
 #       readPrevMessage will NOT read your message
 #     * if doPrint is False, then it will update
 #       readPrevMessage, but not display arg to console
+#     * end works similar to end of the print function.
+#     EX) print(hello, end=', Nicky!')
+#     output:
+#     hello, Nicky!
 #
 # help(arg1='', arg2='')
 #     prints all possible commands
 #
 # chk(arg1, arg2='')
 #     prints the actual substance in arg1
-# 
+#
 # mov(from, to)
 #     moves the substance from "from" to "to
 #     avaliable "from" and  "to" are...
@@ -41,11 +45,11 @@ from gameLib import display
 #     if destination container already contains a substance,
 #     then two substances will MIX
 #     example: a + b = c
-# 
-# 
+#
+#
 # cst
-# 
+#
 # fus
-# 
+#
 
 
