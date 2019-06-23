@@ -296,8 +296,8 @@ def mov(arg1, arg2):
     if getSubstance(arg2).sub != '':
         m.sub = mix(getSubstance(arg1).sub, getSubstance(arg2).sub)
         m.display = m.sub
-        if getSubstance(arg1).display == 'X' or getSubstance(arg2).display == 'X':
-            m.display = 'X'
+        # if getSubstance(arg1).display == 'X' or getSubstance(arg2).display == 'X':
+        #     m.display = 'X'
     setSubstance(arg2, m)
     setSubstance(arg1, Substance(''))
     
@@ -343,8 +343,8 @@ def fus(arg1='', arg2=''):
     finalOutcome = Substance(fusOutcome)
     if getSubstance('3').sub != '':
         finalOutcome = Substance(mix(fusOutcome, getSubstance('3').sub))
-    if getSubstance('1').display == 'X' or getSubstance('2').display == 'X':
-        finalOutcome.display = 'X'
+    # if getSubstance('1').display == 'X' or getSubstance('2').display == 'X':
+    #     finalOutcome.display = 'X'
     setSubstance('3', finalOutcome)
     setSubstance('1', Substance(''))
     setSubstance('2', Substance(''))
