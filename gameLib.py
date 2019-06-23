@@ -2,6 +2,7 @@
 import os
 import platform
 import random
+from math import floor
 from time import sleep
 from time import time
 from story import getStory
@@ -222,7 +223,6 @@ def setActionTime(action, newProcessTime=0):
     processTime[action] = newProcessTime
 
 def takeAction(action):
-    # TODO: takeAction
     global processRestriction
     global totalProcessTime
     global processTime
@@ -376,7 +376,43 @@ def tutorial2MoveSet(a=False):
 
 from userCode import getUserCommand
 
+exitCounterDisplay = False
+def exitCounterDisplayListener(key):
+    global exitCounterDisplay
+    if key == Key.esc:
+        exitCounterDisplay = True
+        return False
+    
+
 def requestConsole():
+    global isProcessing
+    
+    # if in process
+    global totalProcessTime
+    global lastProcessStartedAt
+    if isProcessing and totalProcessTime - floor(time() - lastProcessStartedAt) > 0:
+        
+        showProcessCount()
+        
+        listener = Listener(on_press=exitCounterDisplayListener)
+        listener.start()
+        # 
+        global exitCounterDisplay
+        exitCounterDisplay = False
+        nowTime = time()
+        while totalProcessTime > floor(nowTime - lastProcessStartedAt):
+            updateReady = False
+            while not updateReady and not exitCounterDisplay:
+                updateReady = ( floor(time() - nowTime) > 0 )
+            nowTime = time()
+            if exitCounterDisplay:
+                return True
+            showProcessCount()
+        resetProcessTime()
+        clearScreen()
+        return False
+        # 
+    # if not in process
     print('Enter:', end=' ')
     userInput = input()
     comm = arg1 = arg2 = ''
@@ -409,7 +445,19 @@ def requestConsole():
         if commFunct != clearScreen:
             print('')
     return False
+    
 
+
+def showProcessCount():
+    clearScreen()
+    nowTime = time()
+    global totalProcessTime
+    global lastProcessStartedAt
+    timeLeft = totalProcessTime - floor(nowTime - lastProcessStartedAt)
+    print('FLAMEL module is processing an action')
+    print('Time left: ' + str(timeLeft))
+    print('Press ESC to Exit...')
+    
 
 exitProgram = False
 
@@ -419,8 +467,8 @@ def consoleApplication():
         quit = requestConsole()
         if quit:
             break
-    
-
+        
+        
 def mailApplication():
     print('mail')
     if False:
