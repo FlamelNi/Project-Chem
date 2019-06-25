@@ -2,6 +2,7 @@
 import os
 import platform
 import random
+from math import floor
 from time import sleep
 from time import time
 from story import getStory
@@ -21,6 +22,17 @@ class Substance:
         if display == '':
             self.display = sub
 
+class Mail:
+    def __init__(self, title, sender, message):
+        self.title = title
+        self.sender = sender
+        self.message = message
+    def display(self):
+        print(self.title + '\n')
+        print('from: ' + self.sender + '\n')
+        print(self.message)
+    
+
 ANSWER_CHOICE_CHAR = 30;
 prevMessage = ''
 cost = 0
@@ -29,6 +41,16 @@ cursor = 0
 totalProcessTime = 0
 lastProcessStartedAt = 0
 isProcessing = False
+
+mailInbox = []
+
+supplyAccess = {
+    'a': True,
+    'b': True,
+    'c': True,
+    'd': True,
+    'e': True
+}
 
 processTime = {
     'mov': 0,
@@ -66,20 +88,42 @@ fus_table  = [
 
 cst_table = ['', '', '', '', '']
 
+
+def getSupplyAccess():
+    global supplyAccess
+    return supplyAccess
+
+def setSupplyAccess(access):
+    global supplyAccess
+    supplyAccess = access
+
+def newMail(m):
+    global mailInbox
+    mailInbox.insert(0, m)
+    
+
 def resetCost():
+    global cost
     cost = 0
 
 def resetProcessTime():
+    global isProcessing
+    global totalProcessTime
     isProcessing = False
     totalProcessTime = 0
     
 
 def startProcess():
+    global totalProcessTime
+    global isProcessing
+    global lastProcessStartedAt
+    
     if totalProcessTime == 0:
-        isProcessing = False
+        resetProcessTime()
         return
     isProcessing = True
     lastProcessStartedAt = time()
+    
 
 def displayTable(table=MIX_TABLE):
     a = 0
@@ -146,6 +190,15 @@ def clearScreen(arg1='', arg2=''):
     elif platform.system() == 'Linux':
         os.system('clear')
 
+def flush():
+    try:
+        import msvcrt
+        while msvcrt.kbhit():
+            msvcrt.getch()
+    except ImportError:
+        import sys, termios
+        termios.tcflush(sys.stdin, termios.TCIOFLUSH)
+    
 def askUser(answerChoice):
     i = 1
     for c in answerChoice:
@@ -197,13 +250,17 @@ def validArgType(arg):
     return getArgType(arg) != 'INVALID'
 
 def setRestriction(action, restriction=True):
+    global processRestriction
     processRestriction[action] = restriction
     
-def setActionTime(action, processTime=0):
-    processTime[action] = processTime
+def setActionTime(action, newProcessTime=0):
+    global processTime
+    processTime[action] = newProcessTime
 
 def takeAction(action):
-    # TODO: takeAction
+    global processRestriction
+    global totalProcessTime
+    global processTime
     if processRestriction[action]:
         resetProcessTime()
         raise CommandError(action + ' is not allowed')
@@ -234,7 +291,11 @@ def mix(a, b, table=MIX_TABLE):
 def exitGame(arg1='', arg2=''):
     raise CommandError('QUIT')
 def help(arg1='', arg2=''):
-    printCommands()
+    print('COMMANDS:')
+    for c in USEABLE_COMMANDS:
+        print(c)
+    for c in getUserCommand():
+        print(c)
 def obj(arg1='', arg2=''):
     display(getObj())
 def chk(arg1, arg2=''):
@@ -270,8 +331,8 @@ def mov(arg1, arg2):
     if getSubstance(arg2).sub != '':
         m.sub = mix(getSubstance(arg1).sub, getSubstance(arg2).sub)
         m.display = m.sub
-        if getSubstance(arg1).display == 'X' or getSubstance(arg2).display == 'X':
-            m.display = 'X'
+        # if getSubstance(arg1).display == 'X' or getSubstance(arg2).display == 'X':
+        #     m.display = 'X'
     setSubstance(arg2, m)
     setSubstance(arg1, Substance(''))
     
@@ -295,11 +356,11 @@ def movTutorial(arg1, arg2):
     setSubstance(arg2, m)
     setSubstance(arg1, Substance(''))
     
-def cst(arg1, arg2=''):
+def cst(arg1, arg2=''):#casting subtance then move to 5
     checkArgs(arg1, arg2, 1)
-    a = arg1.sub
+    a = getSubstance(arg1).sub
     a = ord(a) - ord('a')
-    a = cst_table(a)
+    a = cst_table[a]
     takeAction('cst')
     takeAction('mov')
     if getSubstance('5').sub != '':
@@ -314,25 +375,17 @@ def fus(arg1='', arg2=''):
     takeAction('fus')
     takeAction('mov')
     fusOutcome = mix(getSubstance('1').sub, getSubstance('2').sub, fus_table)
-    finalOutcome = Substance(mix(fusOutcome, getSubstance('3').sub))
-    if getSubstance('1').display == 'X' or getSubstance('2').display == 'X':
-        finalOutcome.display = 'X'
+    finalOutcome = Substance(fusOutcome)
+    if getSubstance('3').sub != '':
+        finalOutcome = Substance(mix(fusOutcome, getSubstance('3').sub))
+    # if getSubstance('1').display == 'X' or getSubstance('2').display == 'X':
+    #     finalOutcome.display = 'X'
     setSubstance('3', finalOutcome)
     setSubstance('1', Substance(''))
     setSubstance('2', Substance(''))
     
-    
-
-def checkTime(arg1='', arg2=''):
-    display('totalProcessTime:'+totalProcessTime)
-    display('isProcessing:'+isProcessing)
-    display('processTime:'+processTime)
-    
-    
 
 USEABLE_COMMANDS = {
-    # TODO: debug
-    'checkTime': checkTime,
     #no arg
     'clear': clearScreen,
     'cls': clearScreen,
@@ -358,13 +411,43 @@ def tutorial2MoveSet(a=False):
 
 from userCode import getUserCommand
 
-def printCommands():
-    print('COMMANDS:')
-    for c in USEABLE_COMMANDS:
-        print(c)
-    for c in getUserCommand():
-        print(c)
+exitCounterDisplay = False
+def exitCounterDisplayListener(key):
+    global exitCounterDisplay
+    if key == Key.esc:
+        exitCounterDisplay = True
+        return False
+    
+
 def requestConsole():
+    global isProcessing
+    
+    # if in process
+    global totalProcessTime
+    global lastProcessStartedAt
+    if isProcessing and totalProcessTime - floor(time() - lastProcessStartedAt) > 0:
+        
+        showProcessCount()
+        
+        listener = Listener(on_press=exitCounterDisplayListener)
+        listener.start()
+        # 
+        global exitCounterDisplay
+        exitCounterDisplay = False
+        nowTime = time()
+        while totalProcessTime > floor(nowTime - lastProcessStartedAt):
+            updateReady = False
+            while not updateReady and not exitCounterDisplay:
+                updateReady = ( floor(time() - nowTime) > 0 )
+            nowTime = time()
+            if exitCounterDisplay:
+                return True
+            showProcessCount()
+        resetProcessTime()
+        clearScreen()
+        return False
+        # 
+    # if not in process
     print('Enter:', end=' ')
     userInput = input()
     comm = arg1 = arg2 = ''
@@ -397,9 +480,140 @@ def requestConsole():
         if commFunct != clearScreen:
             print('')
     return False
+    
 
-def cursorMove(key):
+
+def showProcessCount():
+    clearScreen()
+    nowTime = time()
+    global totalProcessTime
+    global lastProcessStartedAt
+    timeLeft = totalProcessTime - floor(nowTime - lastProcessStartedAt)
+    print('FLAMEL module is processing an action')
+    print('Time left: ' + str(timeLeft))
+    print('Press ESC to Exit...')
+    
+
+exitProgram = False
+
+def consoleApplication():
+    clearScreen()
+    while True:
+        quit = requestConsole()
+        if quit:
+            break
+        
+exitMail = False
+isMailOpened = False
+mailCursor = 0
+startingCursor = 0
+def mailApplication():
+    # TODO: 
+    # return False
+    global mailInbox
+    global mailCursor
+    global exitMail
+    global isMailOpened
+    exitMail = False
+    displayInbox = []
+    # startingCursor = mailCursor
+    global startingCursor
+    displaySize = 6
+    
+    while not exitMail:
+        clearScreen()
+        if startingCursor + displaySize > len(mailInbox):
+            startingCursor = len(mailInbox) - displaySize
+        displayInbox.clear()
+        i = 0
+        while i < displaySize:
+            displayInbox.append(mailInbox[startingCursor+i])
+            i = i + 1
+        i = 0
+        for a in displayInbox:
+            if mailCursor == i:
+                print('->', end='')
+            else:
+                print('  ', end='')
+            print(a.title)
+            i = i + 1
+        
+        isMailOpened = False
+        
+        with Listener(on_press=cursorMoveMail) as listener:
+            listener.join()
+        flush()
+        
+        if mailCursor < 0:
+            mailCursor = 0
+            startingCursor = startingCursor - 1
+        if mailCursor >= displaySize:
+            mailCursor = displaySize-1
+            startingCursor = startingCursor + 1
+        
+        if startingCursor < 0:
+            startingCursor = 0
+            mailCursor = 0
+        if mailCursor >= len(mailInbox):
+            mailCursor = len(mailInbox)-1
+        
+        if isMailOpened:
+            openMail(mailInbox[startingCursor+mailCursor])
+        
+        
+    
+
+def doQuit():
+    global exitProgram
+    print('[Exiting the program...]')
+    sleep(2)
+    exitProgram = True
+
+def waitTilEsc(key):
+    if key == Key.esc:
+        return False
+    
+
+def openMail(mail):
+    clearScreen()
+    mail.display()
+    with Listener(on_press=waitTilEsc) as listener:
+        listener.join()
+    flush()
+    
+
+def cursorMoveMail(key):
+    global mailCursor
+    global isMailOpened
+    global exitMail
+    if key == Key.up:
+        mailCursor = mailCursor - 1
+        return False
+    if key == Key.down:
+        mailCursor = mailCursor + 1
+        return False
+    if key == Key.enter:
+        isMailOpened = True
+        return False
+    if key == Key.esc:
+        exitMail = True
+        return False
+    
+
+
+menuList = {
+    'console': consoleApplication,
+    'mail': mailApplication,
+    'quit': doQuit
+}
+
+appFunct = False
+
+def cursorMoveMenu(key):
     global cursor
+    global menuList
+    global appFunct
+    appFunct = False
     if key == Key.up:
         cursor = cursor - 1
         return False
@@ -407,23 +621,20 @@ def cursorMove(key):
         cursor = cursor + 1
         return False
     if key == Key.enter:
-        # if 0 then call console input
-        # 1 then call mail
-        # 2 then quit
-        # 
-        if False:
-            print('')
-        # TODO: transition from menu to sub-program
+        i = 0
+        for app in menuList:
+            if cursor == i:
+                appFunct = menuList[app]
+                break
+            i = i + 1
+        return False
 
 def menu():
     global cursor
-    menuList = [
-        'console',
-        'mail',
-        'quit'
-    ]
-    
-    while 1:
+    global menuList
+    global exitProgram
+    global appFunct
+    while not exitProgram:
         clearScreen()
         i = 0
         for a in menuList:
@@ -434,9 +645,14 @@ def menu():
             print(a)
             i = i + 1
         
-        with Listener(on_press=cursorMove) as listener:
+        with Listener(on_press=cursorMoveMenu) as listener:
             listener.join()
+        flush()
+        if appFunct != False:
+            appFunct()
         cursor = cursor%len(menuList)
+    
+    
     
 
 
