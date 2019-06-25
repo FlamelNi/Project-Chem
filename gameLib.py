@@ -22,6 +22,17 @@ class Substance:
         if display == '':
             self.display = sub
 
+class Mail:
+    def __init__(self, title, sender, message):
+        self.title = title
+        self.sender = sender
+        self.message = message
+    def display(self):
+        print(self.title + '\n')
+        print('from: ' + self.sender + '\n')
+        print(self.message)
+    
+
 ANSWER_CHOICE_CHAR = 30;
 prevMessage = ''
 cost = 0
@@ -30,6 +41,16 @@ cursor = 0
 totalProcessTime = 0
 lastProcessStartedAt = 0
 isProcessing = False
+
+mailInbox = []
+
+supplyAccess = {
+    'a': True,
+    'b': True,
+    'c': True,
+    'd': True,
+    'e': True
+}
 
 processTime = {
     'mov': 0,
@@ -66,6 +87,20 @@ fus_table  = [
 ]
 
 cst_table = ['', '', '', '', '']
+
+
+def getSupplyAccess():
+    global supplyAccess
+    return supplyAccess
+
+def setSupplyAccess(access):
+    global supplyAccess
+    supplyAccess = access
+
+def newMail(m):
+    global mailInbox
+    mailInbox.insert(0, m)
+    
 
 def resetCost():
     global cost
@@ -468,11 +503,64 @@ def consoleApplication():
         if quit:
             break
         
-        
+exitMail = False
+isMailOpened = False
+mailCursor = 0
+startingCursor = 0
 def mailApplication():
-    print('mail')
-    if False:
-        print('')
+    # TODO: 
+    # return False
+    global mailInbox
+    global mailCursor
+    global exitMail
+    global isMailOpened
+    exitMail = False
+    displayInbox = []
+    # startingCursor = mailCursor
+    global startingCursor
+    displaySize = 6
+    
+    while not exitMail:
+        clearScreen()
+        if startingCursor + displaySize > len(mailInbox):
+            startingCursor = len(mailInbox) - displaySize
+        displayInbox.clear()
+        i = 0
+        while i < displaySize:
+            displayInbox.append(mailInbox[startingCursor+i])
+            i = i + 1
+        i = 0
+        for a in displayInbox:
+            if mailCursor == i:
+                print('->', end='')
+            else:
+                print('  ', end='')
+            print(a.title)
+            i = i + 1
+        
+        isMailOpened = False
+        
+        with Listener(on_press=cursorMoveMail) as listener:
+            listener.join()
+        flush()
+        
+        if mailCursor < 0:
+            mailCursor = 0
+            startingCursor = startingCursor - 1
+        if mailCursor >= displaySize:
+            mailCursor = displaySize-1
+            startingCursor = startingCursor + 1
+        
+        if startingCursor < 0:
+            startingCursor = 0
+            mailCursor = 0
+        if mailCursor >= len(mailInbox):
+            mailCursor = len(mailInbox)-1
+        
+        if isMailOpened:
+            openMail(mailInbox[startingCursor+mailCursor])
+        
+        
     
 
 def doQuit():
@@ -480,6 +568,38 @@ def doQuit():
     print('[Exiting the program...]')
     sleep(2)
     exitProgram = True
+
+def waitTilEsc(key):
+    if key == Key.esc:
+        return False
+    
+
+def openMail(mail):
+    clearScreen()
+    mail.display()
+    with Listener(on_press=waitTilEsc) as listener:
+        listener.join()
+    flush()
+    
+
+def cursorMoveMail(key):
+    global mailCursor
+    global isMailOpened
+    global exitMail
+    if key == Key.up:
+        mailCursor = mailCursor - 1
+        return False
+    if key == Key.down:
+        mailCursor = mailCursor + 1
+        return False
+    if key == Key.enter:
+        isMailOpened = True
+        return False
+    if key == Key.esc:
+        exitMail = True
+        return False
+    
+
 
 menuList = {
     'console': consoleApplication,
@@ -489,7 +609,7 @@ menuList = {
 
 appFunct = False
 
-def cursorMove(key):
+def cursorMoveMenu(key):
     global cursor
     global menuList
     global appFunct
@@ -525,7 +645,7 @@ def menu():
             print(a)
             i = i + 1
         
-        with Listener(on_press=cursorMove) as listener:
+        with Listener(on_press=cursorMoveMenu) as listener:
             listener.join()
         flush()
         if appFunct != False:
